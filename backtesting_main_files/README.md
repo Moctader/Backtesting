@@ -25,30 +25,34 @@ buy_signal:
   params:
     buy_threshold: 0.005
 
-
+```
 #### Sell Signal
 
 The sell signal is triggered when the current price is greater than or equal to the predicted high price.
 
 
+```yaml
 sell_signal:
   function: "lambda current_price, predicted_high: current_price >= predicted_high"
   params: {}
 
+```
 
 #### Stop-Loss Signal
 The stop-loss signal is triggered when the current price falls below the buy price adjusted by a stop-loss threshold.
 
+```yaml
 stop_loss_signal:
   function: "lambda current_price, buy_price, stop_loss_threshold: current_price <= buy_price * (1 - stop_loss_threshold)"
   params:
     stop_loss_threshold: 0.02
+```
 
 
 ### Strategies
 The strategy combines the buy, sell, and stop-loss signals and includes additional parameters such as initial cash, position size factor, and maximum holding time.
 
-
+```yaml
 strategies:
   trading_strategy:
     description: "Strategy combining buy, sell, and stop-loss signals."
@@ -59,3 +63,4 @@ strategies:
       initial_cash: 100000
       position_size_factor: 0.1
       max_holding_time: 5
+```
