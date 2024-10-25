@@ -13,7 +13,7 @@ The trading strategy is defined in a YAML file (`trading_strategy.yaml`). This f
 
 ### Signals
 
-Signals are defined using lambda expressions. These expressions are evaluated at runtime to determine buy, sell, and stop-loss conditions.
+Signals are defined using lambda expressions. These expressions are used for evaluation at runtime to determine buy, sell, and stop-loss conditions.
 
 #### Buy Signal
 
