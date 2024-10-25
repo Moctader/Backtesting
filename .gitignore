@@ -1,0 +1,3 @@
+env
+Backtesting/drift/EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv
+Backtesting/main_files/lstm_model.pth
