@@ -80,12 +80,10 @@ class BackTesting:
         self.y_train = torch.tensor(y[:split], dtype=torch.float32)
         self.y_test = torch.tensor(y[split:], dtype=torch.float32)
 
+        print(self.X_test)
         # Extract timestamps for the test set
         self.timestamps = self.data.index[split + self.time_step:]
-
-        # Convert X_test tensor to Pandas DataFrame with timestamps as index
         X_test_numpy = self.X_test.numpy()
-        # Flatten the first two dimensions to match the timestamps
         X_test_flat = X_test_numpy.reshape(-1, X_test_numpy.shape[-1])
         # Repeat the timestamps to match the flattened shape
         timestamps_repeated = np.repeat(self.timestamps, self.X_test.shape[1])
@@ -143,7 +141,7 @@ class BackTesting:
         plt.plot(self.y_test, label='Actual')
         plt.plot(self.predictions, label='Predicted')
         plt.legend()
-        plt.show()
+        #plt.show()
 
     def make_decision(self, timestamp, prediction, action, current_price):
         """Log each decision with placeholders for actual prices."""
@@ -154,17 +152,18 @@ class BackTesting:
             "current_price": current_price,
             "actual_price": None  # Placeholder for future actual price
         })
-
     def fetch_actual_price(self, timestamp):
-        print('timestamp:', timestamp)
+        #print('timestamp:', timestamp)
 
         try:
             # Check if the timestamp exists in the DataFrame
-            actual_row = self.X_test_df.loc[timestamp]
+            mask = self.X_test_df.index == timestamp
+            actual_row = self.X_test_df.loc[mask].iloc[0] if not self.X_test_df.loc[mask].empty else None
+            #print(self.data)
 
-            if not actual_row.empty:
+            if actual_row is not None:
                 actual_price = actual_row['close']
-                print('Actual Price:', actual_price)  # Debug print for actual price
+                # print('Actual Price:', actual_price)  # Debug print for actual price
                 return actual_price
             else:
                 print(f"Timestamp {timestamp} not found in the dataset.")
@@ -178,6 +177,8 @@ class BackTesting:
         for decision in self.decisions:
             actual_price = self.fetch_actual_price(decision["timestamp"])
             decision["actual_price"] = actual_price
+            # print(f"Evaluated Decision at {decision['timestamp']}: predicted {decision['prediction']}, "
+            #       f"actual {decision['actual_price']}, action: {decision['action']}")
 
     def optimized_trading_strategy(self):
         """Implements trading logic with event-based decision logging."""
@@ -283,30 +284,30 @@ class BackTesting:
                 freq='T'  # Set the appropriate frequency
             )
         )
-        print('portfolio_series')
-        print(portfolio_series)
+        #print('portfolio_series')
+        #print(portfolio_series)
 
         # Calculate hit ratio and strategy gain
         hit_ratio = (self.winning_trades / self.total_trades) * 100 if self.total_trades > 0 else 0
         strategy_gain = (self.portfolio_value[-1] - self.cash) / self.cash * 100
 
-        print(f"Final portfolio value: ${self.portfolio_value[-1]:.2f}")
-        print(f"Hit Ratio: {hit_ratio:.2f}%")
-        print(f"Strategy Gain: {strategy_gain:.2f}%")
+        # print(f"Final portfolio value: ${self.portfolio_value[-1]:.2f}")
+        # print(f"Hit Ratio: {hit_ratio:.2f}%")
+        # print(f"Strategy Gain: {strategy_gain:.2f}%")
 
-        # Plot portfolio value over time
-        plt.plot(portfolio_series.index, portfolio_series, label='Portfolio Value')
-        plt.xlabel('Date')
-        plt.ylabel('Portfolio Value (USD)')
-        plt.title('Portfolio Value Over Time')
-        plt.legend()
-        plt.show()
+        # # Plot portfolio value over time
+        # plt.plot(portfolio_series.index, portfolio_series, label='Portfolio Value')
+        # plt.xlabel('Date')
+        # plt.ylabel('Portfolio Value (USD)')
+        # plt.title('Portfolio Value Over Time')
+        # plt.legend()
+        #plt.show()
 
         # Convert the Series to a DataFrame for ffn
         portfolio_df = pd.DataFrame(portfolio_series)
-        print('dataframe')
-        print(portfolio_df)
-        print(portfolio_df.columns)
+        # print('dataframe')
+        # print(portfolio_df)
+        # print(portfolio_df.columns)
         portfolio_df['returns'] = portfolio_df[0].pct_change()
         max_drawdown = ffn.calc_max_drawdown(portfolio_series)
         print(f"Maximum Drawdown: {max_drawdown:.4%}" if max_drawdown is not None else "Maximum Drawdown: N/A")
