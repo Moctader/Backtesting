@@ -80,15 +80,22 @@ class BackTesting:
         self.y_train = torch.tensor(y[:split], dtype=torch.float32)
         self.y_test = torch.tensor(y[split:], dtype=torch.float32)
 
-        print(self.X_test)
+                
         # Extract timestamps for the test set
         self.timestamps = self.data.index[split + self.time_step:]
         X_test_numpy = self.X_test.numpy()
         X_test_flat = X_test_numpy.reshape(-1, X_test_numpy.shape[-1])
+
+        # Inverse transform the flattened X_test values
+        X_test_flat_original = self.feature_scaler.inverse_transform(X_test_flat)
+
         # Repeat the timestamps to match the flattened shape
         timestamps_repeated = np.repeat(self.timestamps, self.X_test.shape[1])
-        timestamps_repeated = timestamps_repeated[:X_test_flat.shape[0]]  # Ensure the lengths match
-        self.X_test_df = pd.DataFrame(X_test_flat, columns=['open', 'high', 'low', 'close', 'volume', 'Return', 'Volatility', 'High_Low_Range', 'Prev_Close_Rel_High'], index=timestamps_repeated)
+        timestamps_repeated = timestamps_repeated[:X_test_flat_original.shape[0]]  # Ensure the lengths match
+
+        # Create DataFrame with the inverse transformed X_test values and repeated timestamps
+        self.X_test_df = pd.DataFrame(X_test_flat_original, columns=['open', 'high', 'low', 'close', 'volume', 'Return', 'Volatility', 'High_Low_Range', 'Prev_Close_Rel_High'], index=timestamps_repeated)
+
 
     def build_model(self):
         hidden_size = 50  # Reduced hidden size
@@ -153,7 +160,7 @@ class BackTesting:
             "actual_price": None  # Placeholder for future actual price
         })
     def fetch_actual_price(self, timestamp):
-        #print('timestamp:', timestamp)
+        print('timestamp:', timestamp)
 
         try:
             # Check if the timestamp exists in the DataFrame
@@ -163,7 +170,7 @@ class BackTesting:
 
             if actual_row is not None:
                 actual_price = actual_row['close']
-                # print('Actual Price:', actual_price)  # Debug print for actual price
+                print('Actual Price:', actual_price)  # Debug print for actual price
                 return actual_price
             else:
                 print(f"Timestamp {timestamp} not found in the dataset.")
@@ -177,8 +184,8 @@ class BackTesting:
         for decision in self.decisions:
             actual_price = self.fetch_actual_price(decision["timestamp"])
             decision["actual_price"] = actual_price
-            # print(f"Evaluated Decision at {decision['timestamp']}: predicted {decision['prediction']}, "
-            #       f"actual {decision['actual_price']}, action: {decision['action']}")
+            print(f"Evaluated Decision at {decision['timestamp']}: predicted {decision['prediction']}, "
+                  f"actual {decision['actual_price']}, action: {decision['action']}")
 
     def optimized_trading_strategy(self):
         """Implements trading logic with event-based decision logging."""
