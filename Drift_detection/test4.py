@@ -98,8 +98,8 @@ class BackTesting:
 
 
     def build_model(self):
-        hidden_size = 50  # Reduced hidden size
-        num_layers = 1  # Reduced number of layers
+        hidden_size = 100  
+        num_layers = 2  
         self.model = LSTMModel(input_size=self.X_train.shape[2], hidden_size=hidden_size, output_size=1, num_layers=num_layers, device=self.device).to(self.device)
 
     def train_model(self, epochs, batch_size, learning_rate, patience):
@@ -148,7 +148,7 @@ class BackTesting:
         plt.plot(self.y_test, label='Actual')
         plt.plot(self.predictions, label='Predicted')
         plt.legend()
-        #plt.show()
+        plt.show()
 
     def make_decision(self, timestamp, prediction, action, current_price):
         """Log each decision with placeholders for actual prices."""
@@ -159,6 +159,7 @@ class BackTesting:
             "current_price": current_price,
             "actual_price": None  # Placeholder for future actual price
         })
+
     def fetch_actual_price(self, timestamp):
         print('timestamp:', timestamp)
 
@@ -169,7 +170,7 @@ class BackTesting:
             #print(self.data)
 
             if actual_row is not None:
-                actual_price = actual_row['close']
+                actual_price = actual_row['high']
                 print('Actual Price:', actual_price)  # Debug print for actual price
                 return actual_price
             else:
@@ -201,6 +202,7 @@ class BackTesting:
         self.start_price = self.data['close'].iloc[int(0.8 * len(self.data))]
         self.end_price = self.data['close'].iloc[-1]
         buy_price = None
+        
         if not isinstance(self.data.index, pd.DatetimeIndex):
             try:
                 self.data.index = pd.to_datetime(self.data.index, unit='m')  # Adjust 'ns' or 's' as needed
@@ -214,7 +216,7 @@ class BackTesting:
             buy_signal = current_price < predicted_high * (1 + buy_threshold)
             sell_signal = (current_price > (buy_price * sell_threshold)) if buy_price else False
             current_index = int(0.8 * len(self.data)) + i
-            current_timestamp = self.data.index[current_index]
+            current_timestamp = self.data.index[current_index+1]
 
             if position == 0 and buy_signal:
                 # Buy decision
@@ -298,17 +300,17 @@ class BackTesting:
         hit_ratio = (self.winning_trades / self.total_trades) * 100 if self.total_trades > 0 else 0
         strategy_gain = (self.portfolio_value[-1] - self.cash) / self.cash * 100
 
-        # print(f"Final portfolio value: ${self.portfolio_value[-1]:.2f}")
-        # print(f"Hit Ratio: {hit_ratio:.2f}%")
-        # print(f"Strategy Gain: {strategy_gain:.2f}%")
+        print(f"Final portfolio value: ${self.portfolio_value[-1]:.2f}")
+        print(f"Hit Ratio: {hit_ratio:.2f}%")
+        print(f"Strategy Gain: {strategy_gain:.2f}%")
 
-        # # Plot portfolio value over time
-        # plt.plot(portfolio_series.index, portfolio_series, label='Portfolio Value')
-        # plt.xlabel('Date')
-        # plt.ylabel('Portfolio Value (USD)')
-        # plt.title('Portfolio Value Over Time')
-        # plt.legend()
-        #plt.show()
+        # Plot portfolio value over time
+        plt.plot(portfolio_series.index, portfolio_series, label='Portfolio Value')
+        plt.xlabel('Date')
+        plt.ylabel('Portfolio Value (USD)')
+        plt.title('Portfolio Value Over Time')
+        plt.legend()
+        plt.show()
 
         # Convert the Series to a DataFrame for ffn
         portfolio_df = pd.DataFrame(portfolio_series)
@@ -341,7 +343,7 @@ class BackTesting:
         self.prepare_data(time_step=60)
         self.create_datasets()
         self.build_model()
-        self.train_model(epochs=1, batch_size=32, learning_rate=0.001, patience=8)
+        self.train_model(epochs=50, batch_size=32, learning_rate=0.001, patience=8)
         self.evaluate_model()
         self.optimized_trading_strategy()
         self.calculate_performance_metrics()
