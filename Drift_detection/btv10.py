@@ -1,3 +1,4 @@
+import yaml
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,30 +7,95 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
+# Load configuration from YAML
+def load_config(yaml_file_path):
+    with open(yaml_file_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
 
+
+
+
+# Define Signal class to use dynamic thresholds from YAML configuration
 class Signal:
-    def __init__(self, predictions, current_price, buy_threshold=0.00, sell_threshold=0.00):
-        self.predictions = predictions
+    def __init__(self, current_price, buy_signal, sell_signal, stop_loss_signal):
         self.current_price = current_price
-        self.buy_threshold = buy_threshold
-        self.sell_threshold = sell_threshold
+        self.buy_signal = eval(buy_signal["function"])
+        self.sell_signal = eval(sell_signal["function"])
+        self.stop_loss_signal = eval(stop_loss_signal["function"])
+        self.buy_threshold = buy_signal["params"]["buy_threshold"]
+        self.sell_threshold = sell_signal["params"]["sell_threshold"]
+        self.stop_loss_threshold = stop_loss_signal["params"]["stop_loss_threshold"]
 
     def generate_buy_signal(self, predicted_high):
-        return self.current_price < predicted_high * (1 + self.buy_threshold)
+        return self.buy_signal(self.current_price, predicted_high, self.buy_threshold)
 
     def generate_sell_signal(self, buy_price):
-        return self.current_price > (buy_price * self.sell_threshold) if buy_price else False
+        return self.sell_signal(self.current_price, buy_price, self.sell_threshold) if buy_price else False
+
+    def generate_stop_loss_signal(self, buy_price):
+        return self.stop_loss_signal(self.current_price, buy_price, self.stop_loss_threshold) if buy_price else False
 
 
 
 
+
+
+import yaml
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+
+# Load configuration from YAML
+def load_config(yaml_file_path):
+    with open(yaml_file_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+
+
+
+
+# Define Signal class to use dynamic thresholds from YAML configuration
+class Signal:
+    def __init__(self, current_price, buy_signal, sell_signal, stop_loss_signal):
+        self.current_price = current_price
+        self.buy_signal = eval(buy_signal["function"])
+        self.sell_signal = eval(sell_signal["function"])
+        self.stop_loss_signal = eval(stop_loss_signal["function"])
+        self.buy_threshold = buy_signal["params"]["buy_threshold"]
+        self.sell_threshold = sell_signal["params"]["sell_threshold"]
+        self.stop_loss_threshold = stop_loss_signal["params"]["stop_loss_threshold"]
+
+    def generate_buy_signal(self, predicted_high):
+        return self.buy_signal(self.current_price, predicted_high, self.buy_threshold)
+
+    def generate_sell_signal(self, buy_price):
+        return self.sell_signal(self.current_price, buy_price, self.sell_threshold) if buy_price else False
+
+    def generate_stop_loss_signal(self, buy_price):
+        return self.stop_loss_signal(self.current_price, buy_price, self.stop_loss_threshold) if buy_price else False
+
+
+
+
+
+
+
+
+from datetime import timedelta
 
 class Strategy:
-    def __init__(self, initial_cash, position_size_factor=0.1):
-        self.initial_cash = initial_cash
-        self.position_size_factor = position_size_factor
-        self.cash = initial_cash
+    def __init__(self, config):
+        strategy_config = config["strategies"]["trading_strategy"]["params"]
+        self.initial_cash = strategy_config["initial_cash"]
+        self.position_size_factor = strategy_config["position_size_factor"]
+        self.cash = self.initial_cash
         self.position = 0
         self.buy_price = None
         self.total_trades = 0
@@ -37,17 +103,21 @@ class Strategy:
         self.losing_trades = 0
         self.portfolio_value = []
         self.current_price = None
-        self.decisions = []  # Initialize the decisions attribute
-        self.X_test_df = None  # Placeholder for the DataFrame
+        self.decisions = []
+        self.X_test_df = None
+        self.max_holding_time = strategy_config["max_holding_time"]
+        self.last_trade_timestamp = None  # Track the timestamp of the last trade
 
     def make_decision(self, timestamp, prediction, action, current_price):
+        """Log each decision with debugging information."""
         self.decisions.append({
             "timestamp": timestamp,
             "prediction": prediction,
             "action": action,
             "current_price": current_price,
-            "actual_price": None  # Placeholder for future actual price
+            "actual_price": None,
         })
+
 
 
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
@@ -107,24 +177,20 @@ class Strategy:
 
 
 
-    def fetch_actual_price(self, timestamp):
-        print('timestamp:', timestamp)
+    def print_trade_statistics(self):
+        """Print the total trades and winning trades."""
+        print(f"Total Trades: {self.total_trades}, Winning Trades: {self.winning_trades}")
 
+    def fetch_actual_price(self, timestamp):
         try:
-            # Check if the timestamp exists in the DataFrame
             mask = self.X_test_df.index == timestamp
             actual_row = self.X_test_df.loc[mask].iloc[0] if not self.X_test_df.loc[mask].empty else None
 
             if actual_row is not None:
-                actual_price = actual_row['high']
-                print('Actual Price:', actual_price)  # Debug print for actual price
-                return actual_price
+                return actual_row['high']
             else:
-                print(f"Timestamp {timestamp} not found in the dataset.")
                 return None
- 
         except KeyError:
-            print(f"Timestamp {timestamp} not found in the dataset.")
             return None
 
     def evaluate_decisions(self):
@@ -133,6 +199,10 @@ class Strategy:
             decision["actual_price"] = actual_price
             print(f"Evaluated Decision at {decision['timestamp']}: predicted {decision['prediction']}, "
                   f"actual {decision['actual_price']}, action: {decision['action']}")
+
+
+
+
 
 
 
@@ -162,21 +232,34 @@ class BackTesting:
         model.train(model.X_train, model.y_train, model.X_test, model.y_test, epochs=100, batch_size=16, learning_rate=0.001, patience=8)
         self.predictions, self.y_test = model.evaluate(model.X_test, model.y_test, model.target_scaler)
 
-        strategy = Strategy(initial_cash=100000)
+        # Load YAML configuration
+        config = load_config("./config.yaml")
+
+        # Create signals
+        buy_signal_config = config["signals"]["buy_signal"]
+        sell_signal_config = config["signals"]["sell_signal"]
+        stop_loss_signal_config = config["signals"]["stop_loss_signal"]
+
+        # Create strategy
+        strategy = Strategy(config)
+
         strategy.X_test_df = model.X_test_df  # Pass the DataFrame to the strategy
         for i in range(len(model.X_test)):
             current_price = model.data['close'].iloc[int(0.8 * len(model.data)) + i]
             predicted_high = self.predictions[i][0]
             current_timestamp = model.data.index[int(0.8 * len(model.data)) + i]
-            future_timestamp = model.data.index[int(0.8 * len(model.data)) + i+1]
+            future_timestamp = model.data.index[int(0.8 * len(model.data)) + i + 1]
 
-            signal = Signal(predictions=self.predictions, current_price=current_price)
+            signal = Signal(current_price, buy_signal_config, sell_signal_config, stop_loss_signal_config)
             strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
         strategy.evaluate_decisions()  # Evaluate and print decisions
 
         performance_metrics = PerformanceMetrics(model.data, strategy)
         performance_metrics.calculate_performance_metrics()
+
+
+
 
 
 
@@ -246,6 +329,9 @@ class PerformanceMetrics:
         # Calculate annualized Sortino Ratio
         sortino_ratio = (excess_returns.mean() / downside_deviation)
         print(f"Sortino Ratio: {sortino_ratio:.2f}")
+
+
+
 
 
 
@@ -361,9 +447,30 @@ class Model:
             y_test = y_test.numpy()
         predictions = target_scaler.inverse_transform(predictions)
         y_test = target_scaler.inverse_transform(y_test)
+
+        plt.plot(y_test, label='Actual')
+        plt.plot(predictions, label='Predicted')
+        plt.legend()
+        plt.show()
         return predictions, y_test
+
+
+
 
 # Usage
 if __name__ == '__main__':
     bt = BackTesting('pytorch')
+    #bt.run_backtest('../../datasets/FIXED_EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv')
     bt.run_backtest('../../EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv')
+
+
+
+
+
+
+
+
+
+
+
+
