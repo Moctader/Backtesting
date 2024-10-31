@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # Load configuration from YAML
 def load_config(yaml_file_path):
@@ -199,32 +198,12 @@ class Strategy:
             return None
 
     def evaluate_decisions(self):
-        y_true = []
-        y_pred = []
-
         for decision in self.decisions:
             actual_price = self.fetch_actual_price(decision["timestamp"])
             decision["actual_price"] = actual_price
+            # print(f"Evaluated Decision at {decision['timestamp']}: predicted {decision['prediction']}, "
+            #       f"actual {decision['actual_price']}, action: {decision['action']}")
 
-            # Determine the actual action based on the actual price
-            if actual_price is not None:
-                if decision["action"] == "buy":
-                    y_pred.append(1)  # Predicted buy
-                    y_true.append(1 if actual_price > decision["current_price"] else 0)  # Actual buy if price increased
-                elif decision["action"] == "sell":
-                    y_pred.append(0)  # Predicted sell
-                    y_true.append(0 if actual_price < decision["current_price"] else 1)  # Actual sell if price decreased
-
-        # Calculate confusion matrix
-        cm = confusion_matrix(y_true, y_pred, labels=[1, 0])
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Buy", "Sell"])
-        disp.plot()
-        plt.title("Confusion Matrix of Trading Decisions")
-        plt.show()
-
-        # Print confusion matrix
-        print("Confusion Matrix:")
-        print(cm)
 
 
 
