@@ -100,10 +100,10 @@ class BaseStrategy(ABC):
         """Execute a sell decision."""
         pass
 
-    @abstractmethod
-    def exit(self, future_timestamp, predicted_high):
-        """Execute an exit decision."""
-        pass
+    # @abstractmethod
+    # def exit(self, future_timestamp, predicted_high):
+    #     """Execute an exit decision."""
+    #     pass
 
     @abstractmethod
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
@@ -237,79 +237,74 @@ class BaseStrategy(ABC):
         plt.show()
 
 class Strategy(BaseStrategy):
+    def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
+        """Execute trades based on signals and manage positions."""
+        # Update the current price
+        self.current_price = current_price
+
+        # Buy decision
+        if self.position == 0 and signal.generate_buy_signal(predicted_high):
+            self.buy(future_timestamp, predicted_high)
+
+        # Sell decision
+        elif self.position > 0 and signal.generate_sell_signal(self.buy_price):
+            self.sell(future_timestamp, predicted_high)
+
+        # Buy to cover short position
+        elif self.position < 0 and signal.generate_buy_signal(predicted_high):
+            self.buy_to_cover(future_timestamp, predicted_high)
+
+        # Update portfolio value for the minute
+        self.update_portfolio_value()
+
     def buy(self, future_timestamp, predicted_high):
-        """Execute a buy decision."""
-        amount_to_invest = self.position_size_factor * self.cash * self.signal_strength
+        amount_to_invest = self.position_size_factor * self.cash
         shares_to_buy = amount_to_invest // self.current_price
         self.cash -= shares_to_buy * self.current_price
         self.position += shares_to_buy
         self.buy_price = self.current_price
-        self.total_trades += 1
         self.make_decision(future_timestamp, predicted_high, "buy", self.current_price)  # Log buy event
-        #print(f"Buy executed at {future_timestamp} with current price {self.current_price} and predicted high {predicted_high}")
 
     def sell(self, future_timestamp, predicted_high):
-        """Execute a sell decision."""
         trade_value = self.position * self.current_price
         self.cash += trade_value
         profit_or_loss = trade_value - (self.position * self.buy_price)
+        self.track_trade_outcome(profit_or_loss)
+        self.position = 0
+        self.buy_price = None
+        self.make_decision(future_timestamp, predicted_high, "sell", self.current_price)  # Log sell event
+
+        # Optional: Initiate short position if strategy allows
+        self.initiate_short_position()
+
+    def initiate_short_position(self):
+        amount_to_invest = self.position_size_factor * self.cash
+        shares_to_short = amount_to_invest // self.current_price
+        self.cash += shares_to_short * self.current_price  # Short proceeds added to cash
+        self.position -= shares_to_short
+
+    def buy_to_cover(self, future_timestamp, predicted_high):
+        trade_value = abs(self.position) * self.current_price
+        self.cash -= trade_value
+        profit_or_loss = -trade_value
+        self.track_trade_outcome(profit_or_loss)
+        self.position = 0
+
+        # Re-buy after covering
+        self.buy(future_timestamp, predicted_high)
+
+    def track_trade_outcome(self, profit_or_loss):
         if profit_or_loss > 0:
             self.winning_trades += 1
         else:
             self.losing_trades += 1
         self.total_trades += 1
-        self.position = 0
-        self.buy_price = None
-        self.make_decision(future_timestamp, predicted_high, "sell", self.current_price)  # Log sell event
-        #print(f"Sell executed at {future_timestamp} with current price {self.current_price} and predicted high {predicted_high}")
 
-    def exit(self, future_timestamp, predicted_high):
-        """Execute an exit decision."""
-        trade_value = self.position * self.current_price
-        self.cash += trade_value
-        self.total_trades += 1
-        self.position = 0
-        self.buy_price = None
-        self.make_decision(future_timestamp, predicted_high, "exit", self.current_price)  # Log exit event
-        #print(f"Exit executed at {future_timestamp} with current price {self.current_price} and predicted high {predicted_high}")
-
-    def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
-        """Execute trades based on signals and manage positions."""
-        self.current_price = current_price
-
-        # Determine the signal strength
-        if self.previous_signal == signal:
-            self.signal_strength += 1
-        else:
-            self.signal_strength = 1
-        self.previous_signal = signal
-
-        # Generate signals
-        buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = signal.generate_sell_signal(self.buy_price)
-        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
-
-        #print(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
-
-        # Buy decision
-        if self.position == 0 and buy_signal:
-            self.buy(future_timestamp, predicted_high)
-
-        # Add to position if the signal is strong
-        elif self.position > 0 and buy_signal:
-            self.buy(future_timestamp, predicted_high)
-
-        # Sell decision
-        elif self.position > 0 and sell_signal:
-            self.sell(future_timestamp, predicted_high)
-
-        # Exit decision
-        elif self.position > 0 and exit_signal:
-            self.exit(future_timestamp, predicted_high)
-
-        # Update portfolio value for the minute
-        self.portfolio_value.append(self.cash + self.position * self.current_price)
-        #self.print_trade_statistics()
+    def update_portfolio_value(self):
+        portfolio_value = self.cash + self.position * self.current_price
+        self.portfolio_value.append(portfolio_value)
+        # Log the updated portfolio value
+        #logging.debug(f"Updated portfolio value: {portfolio_value}")
 
 ####################################################################################################
 class BackTesting:
