@@ -2,15 +2,6 @@
 
 This project is a backtesting framework for evaluating trading strategies. The framework supports two different types of trading strategies, including Binary, Binary Plus Exit, 
 
-## Table of Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Strategies](#strategies)
-- [Signals](#signals)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 
