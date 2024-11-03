@@ -103,6 +103,13 @@ class BaseStrategy(ABC):
             self.losing_trades += 1
         self.total_trades += 1
 
+    def generate_signals(self, signal, predicted_high):
+        """Generate buy, sell, and exit signals."""
+        buy_signal = signal.generate_buy_signal(predicted_high)
+        sell_signal = signal.generate_sell_signal(self.buy_price)
+        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+        return buy_signal, sell_signal, exit_signal
+
     @abstractmethod
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
         """Execute trades based on signals and manage positions."""
@@ -210,9 +217,8 @@ class BinaryStrategy(BaseStrategy):
         self.current_price = current_price
 
         # Generate signals
-        buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = signal.generate_sell_signal(self.buy_price)
-        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+        buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
+
 
         # Log the generated signals
         logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
@@ -254,10 +260,8 @@ class BinaryPlusExitStrategy(BaseStrategy):
             self.signal_strength = 1
         self.previous_signal = signal
 
-        # Generate signals
-        buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = signal.generate_sell_signal(self.buy_price)
-        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+        buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
+
 
         # Log the generated signals
         logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
@@ -285,12 +289,9 @@ class MulticlassStrategy(BaseStrategy):
         """Execute trades based on signals and manage positions."""
         self.current_price = current_price
 
-        # Generate signals
-        buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = signal.generate_sell_signal(self.buy_price)
-        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+        buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
 
-        # Log the generated signals
+        # # Log the generated signals
         logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
 
         # Buy decision
