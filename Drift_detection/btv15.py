@@ -100,10 +100,10 @@ class BaseStrategy(ABC):
         """Execute a sell decision."""
         pass
 
-    # @abstractmethod
-    # def exit(self, future_timestamp, predicted_high):
-    #     """Execute an exit decision."""
-    #     pass
+    @abstractmethod
+    def exit(self, future_timestamp, predicted_high):
+        """Execute an exit decision."""
+        pass
 
     @abstractmethod
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
@@ -151,7 +151,6 @@ class BaseStrategy(ABC):
             actual_price = self.fetch_actual_price(decision["timestamp"])
             decision["actual_price"] = actual_price
            # print(f"Timestamp: {decision['timestamp']}, Prediction: {decision['prediction']}, Actual Price: {actual_price}")
-
 
             if actual_price is not None:
                 # Evaluate signals
@@ -236,23 +235,48 @@ class BaseStrategy(ABC):
         plt.title("Relative Confusion Matrix of Trading Decisions")
         plt.show()
 
+
+
+
+        
+
 class Strategy(BaseStrategy):
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
         """Execute trades based on signals and manage positions."""
         # Update the current price
         self.current_price = current_price
 
+        # Generate signals
+        buy_signal = signal.generate_buy_signal(predicted_high)
+        sell_signal = signal.generate_sell_signal(self.buy_price)
+        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+
+        # Log the generated signals
+        logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
+
         # Buy decision
-        if self.position == 0 and signal.generate_buy_signal(predicted_high):
+        if self.position == 0 and buy_signal:
+            logging.debug(f"Executing buy at {future_timestamp} with current price: {self.current_price}")
             self.buy(future_timestamp, predicted_high)
 
         # Sell decision
-        elif self.position > 0 and signal.generate_sell_signal(self.buy_price):
+        elif self.position > 0 and sell_signal:
+            logging.debug(f"Executing sell at {future_timestamp} with current price: {self.current_price}")
             self.sell(future_timestamp, predicted_high)
 
+        # Exit decision
+        elif self.position > 0 and exit_signal:
+            logging.debug(f"Executing exit at {future_timestamp} with current price: {self.current_price}")
+            self.exit(future_timestamp, predicted_high)
+
         # Buy to cover short position
-        elif self.position < 0 and signal.generate_buy_signal(predicted_high):
+        elif self.position < 0 and buy_signal:
+            logging.debug(f"Executing buy to cover at {future_timestamp} with current price: {self.current_price}")
             self.buy_to_cover(future_timestamp, predicted_high)
+
+        else:
+            # Log that no trade was executed
+            logging.debug(f"No trade executed at {future_timestamp} with current price: {self.current_price}")
 
         # Update portfolio value for the minute
         self.update_portfolio_value()
@@ -276,6 +300,15 @@ class Strategy(BaseStrategy):
 
         # Optional: Initiate short position if strategy allows
         self.initiate_short_position()
+
+    def exit(self, future_timestamp, predicted_high):
+        """Execute an exit decision."""
+        trade_value = self.position * self.current_price
+        self.cash += trade_value
+        self.total_trades += 1
+        self.position = 0
+        self.buy_price = None
+        self.make_decision(future_timestamp, predicted_high, "exit", self.current_price)  # Log exit event
 
     def initiate_short_position(self):
         amount_to_invest = self.position_size_factor * self.cash
@@ -304,7 +337,7 @@ class Strategy(BaseStrategy):
         portfolio_value = self.cash + self.position * self.current_price
         self.portfolio_value.append(portfolio_value)
         # Log the updated portfolio value
-        #logging.debug(f"Updated portfolio value: {portfolio_value}")
+        logging.debug(f"Updated portfolio value: {portfolio_value}")
 
 ####################################################################################################
 class BackTesting:
@@ -332,7 +365,7 @@ class BackTesting:
         self.predictions, self.y_test = model.evaluate(model.X_test, model.y_test, model.target_scaler)
 
         # Load YAML configuration
-        config = load_config("./config1.yaml")
+        config = load_config("./config2.yaml")
 
         # Create signals
         buy_signal_config = config["signals"]["buy_signal"]
