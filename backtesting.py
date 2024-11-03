@@ -4,7 +4,7 @@ from models import Model
 from strategies import BinaryStrategy, BinaryPlusExitStrategy, MulticlassStrategy
 from performance_metrics import PerformanceMetrics
 from utils import load_config
-from signals import Signal, MulticlassSignal
+from signals import Signal, MulticlassSignal, BinarySignal, BinaryPlusExitSignal
 
 class BackTesting:
     def __init__(self):
@@ -62,8 +62,10 @@ class BackTesting:
             # Create signal instance based on strategy type
             if isinstance(strategy, MulticlassStrategy):
                 signal = MulticlassSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config, quartiles)
-            else:
-                signal = Signal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
+            elif isinstance(strategy, BinaryStrategy):
+                signal = BinarySignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
+            elif isinstance(strategy, BinaryPlusExitStrategy):
+                signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
 
             strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
