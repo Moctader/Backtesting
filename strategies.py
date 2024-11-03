@@ -289,9 +289,10 @@ class MulticlassStrategy(BaseStrategy):
         """Execute trades based on signals and manage positions."""
         self.current_price = current_price
 
+        # Generate signals
         buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
 
-        # # Log the generated signals
+        # Log the generated signals
         logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
 
         # Buy decision
