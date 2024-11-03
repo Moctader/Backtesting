@@ -4,7 +4,7 @@ from models import Model
 from strategies import BinaryStrategy, BinaryPlusExitStrategy, MulticlassStrategy
 from performance_metrics import PerformanceMetrics
 from utils import load_config
-from signals import Signal, MulticlassSignal, BinarySignal, BinaryPlusExitSignal
+from signals import MulticlassSignal, BinarySignal, BinaryPlusExitSignal
 
 class BackTesting:
     def __init__(self):
@@ -71,7 +71,7 @@ class BackTesting:
 
 if __name__ == '__main__':
     # Define quartiles for MulticlassSignal
-    quartiles = [1.15, 1.16, 1.17]  
+    quartiles = [1.13, 1.14, 1.15]  
 
     bt = BackTesting()
     bt.run_backtest('./EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryPlusExitStrategy", quartiles=quartiles)

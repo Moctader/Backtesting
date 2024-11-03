@@ -163,12 +163,16 @@ class BaseStrategy(ABC):
                 elif decision["action"] == "sell":
                     y_pred_signal.append(0)  # Predicted sell signal
                     y_true_signal.append(0 if decision["prediction"] < decision["current_price"] else 1)  # Actual sell signal if price decreased
-
+                
                 # Evaluate trade outcomes
-                if decision["action"] in ["buy", "sell"]:
-                    y_pred_trade.append(1 if decision["action"] == "buy" else 0)  # Predicted trade outcome
-                    y_true_trade.append(1 if actual_price > decision["current_price"] else 0)  # Actual trade outcome
+                if decision["action"] == "buy":
+                    y_pred_trade.append(1)  # Predicted buy signal
+                    y_true_trade.append(1 if actual_price > decision["current_price"] else 0)  # Actual buy signal if price increased
+                elif decision["action"] == "sell":
+                    y_pred_trade.append(0)  # Predicted sell signal
+                    y_true_trade.append(0 if actual_price < decision["current_price"] else 1)  # Actual sell signal if price decreased
 
+          
         self._plot_confusion_matrices(y_true_signal, y_pred_signal, y_true_trade, y_pred_trade)
 
     def _plot_confusion_matrices(self, y_true_signal, y_pred_signal, y_true_trade, y_pred_trade):
