@@ -29,28 +29,22 @@ class PerformanceMetrics:
         self.trading_minutes_per_day = None  
 
     def prepare_data(self):
-        """Prepare the data for performance metrics calculation."""
         try:
             self.data.index = pd.to_datetime(self.data.index)
             self.data['date'] = self.data.index
-
-            # Debug: Print the start and end dates of the data index
             logging.debug(f"Data index start: {self.data.index[0]}, end: {self.data.index[-1]}")
 
-            # Create portfolio_series with the appropriate frequency
             self.portfolio_series = pd.Series(
                 self.strategy.portfolio_value,
                 index=pd.date_range(
                     start=self.data.index[-len(self.strategy.portfolio_value)],
                     periods=len(self.strategy.portfolio_value),
-                    freq='min'  # Set the appropriate frequency
+                    freq='min' 
                 )
             )
 
-            # Debug: Print the length of self.portfolio_series
             logging.debug(f"Length of self.portfolio_series: {len(self.portfolio_series)}")
 
-            # Debug: Print the first few entries of self.portfolio_series
             logging.debug(f"First few entries of self.portfolio_series:\n{self.portfolio_series.head()}")
 
         except Exception as e:
@@ -60,25 +54,18 @@ class PerformanceMetrics:
         
 
     def calculate_trading_minutes_per_day(self):
-        """Calculate the number of trading days, total trading minutes per day, and the average trading minutes per day."""
         try:
-            # Ensure portfolio_series is available and has a DateTimeIndex
             if self.portfolio_series is None or not isinstance(self.portfolio_series.index, pd.DatetimeIndex):
                 raise ValueError("portfolio_series is not set or does not have a DateTimeIndex")
     
-            # Group by date and count the number of minutes traded each day
-            total_num_trading = self.portfolio_series.groupby(self.portfolio_series.index.date).size()
-    
-            # Calculate the total number of trading days
+            total_num_trading = self.portfolio_series.groupby(self.portfolio_series.index.date).size()    
             num_trading_days = total_num_trading.size
             logging.info(f"Total Number of Trading Days: {num_trading_days}")
     
-            # Calculate the average number of trading minutes per day
             average_trading_minutes_per_day = total_num_trading.mean()
             self.trading_minutes_per_day = average_trading_minutes_per_day
             logging.info(f"Average Trading Minutes Per Day: {self.trading_minutes_per_day:.2f}")
-    
-            # Log the number of trades (minutes) for each particular date
+
             for date, minutes in total_num_trading.items():
                 logging.debug(f"Date: {date}, Minutes: {minutes}")
     
@@ -100,7 +87,6 @@ class PerformanceMetrics:
             return np.nan
 
     def calculate_strategy_gain(self):
-        """Calculate the strategy gain."""
         try:
             strategy_gain = (self.strategy.portfolio_value[-1] - self.strategy.initial_cash) / self.strategy.initial_cash * 100
             logging.debug(f"Strategy Gain: {strategy_gain}")
@@ -110,7 +96,6 @@ class PerformanceMetrics:
             return np.nan
 
     def plot_portfolio_value(self):
-        """Plot the portfolio value over time."""
         try:
             plt.plot(self.portfolio_series.index, self.portfolio_series, label='Portfolio Value')
             plt.xlabel('Date')
@@ -122,7 +107,6 @@ class PerformanceMetrics:
             logging.error(f"Error in plot_portfolio_value: {e}")
 
     def convert_to_dataframe(self):
-        """Convert the portfolio series to a DataFrame."""
         try:
             self.portfolio_df = pd.DataFrame(self.portfolio_series)
             self.portfolio_df['returns'] = self.portfolio_df[0].pct_change()
@@ -130,7 +114,6 @@ class PerformanceMetrics:
             logging.error(f"Error in convert_to_dataframe: {e}")
 
     def calculate_max_drawdown(self):
-        """Calculate the maximum drawdown."""
         try:
             max_drawdown = ffn.calc_max_drawdown(self.portfolio_series)
             logging.debug(f"Maximum Drawdown: {max_drawdown}")
@@ -140,18 +123,14 @@ class PerformanceMetrics:
             return np.nan
 
     def calculate_sharpe_ratio(self, risk_free_rate=0.01):
-        """Calculate the Sharpe Ratio."""
         try:
-            # Calculate the expected portfolio return (Rx)
             minute_returns = self.portfolio_df['returns'].dropna()
             expected_portfolio_return = minute_returns.mean()
             logging.debug(f"Expected Portfolio Return (Rx): {expected_portfolio_return}")
 
-            # Calculate the standard deviation of portfolio return (StdDev Rx)
             portfolio_volatility = minute_returns.std()
             logging.debug(f"Standard Deviation of Portfolio Return (StdDev Rx): {portfolio_volatility}")
 
-            # Calculate the Sharpe Ratio
             sharpe_ratio = (expected_portfolio_return - risk_free_rate) / portfolio_volatility if portfolio_volatility != 0 else np.nan
             logging.debug(f"Risk-Free Rate (Rf): {risk_free_rate}, Sharpe Ratio: {sharpe_ratio}")
 
@@ -163,20 +142,16 @@ class PerformanceMetrics:
     def calculate_sortino_ratio(self, returns, risk_free_rate=0.0001):
         """Calculate the Sortino Ratio."""
         try:
-            # Calculate the average return of the portfolio (Rp)
             average_return = returns.mean()
             logging.debug(f"Average Return (Rp): {average_return}")
 
-            # Target rate of return (T) is the risk-free rate
             target_return = risk_free_rate
             logging.debug(f"Target Rate of Return (T): {target_return}")
 
-            # Calculate the downside deviation (Dd)
             downside_returns = returns[returns < target_return]
             downside_deviation = np.sqrt(np.mean(np.square(downside_returns - target_return)))
             logging.debug(f"Downside Deviation (Dd): {downside_deviation}")
 
-            # Calculate the Sortino Ratio
             sortino_ratio = (average_return - target_return) / downside_deviation if downside_deviation != 0 else np.nan
             logging.debug(f"Sortino Ratio: {sortino_ratio}")
 
@@ -186,7 +161,6 @@ class PerformanceMetrics:
             return np.nan
         
     def compare_with_buy_and_hold(self, initial_cash, train_size, trading_days):
-        """Compare the trading strategy with a Buy and Hold strategy."""
         try:
             # Buy and Hold Strategy
             buy_and_hold_value = [initial_cash]

@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from models import Model
-from strategies import Strategy
+from strategies import BinaryPlusExitStrategy
 from performance_metrics import PerformanceMetrics
 from utils import load_config
 from signals import Signal
@@ -14,7 +14,6 @@ class BackTesting:
 
 
     def run_backtest(self, data_file_path):
-        # Initialize and prepare the model
         model = Model(input_size=9, hidden_size=50, output_size=1, num_layers=1, device=self.device)
         model.load_data(data_file_path)
         model.prepare_data(time_step=60)
@@ -22,27 +21,22 @@ class BackTesting:
         model.train(model.X_train, model.y_train, model.X_test, model.y_test, epochs=100, batch_size=16, learning_rate=0.001, patience=8)
         self.predictions, self.y_test = model.evaluate(model.X_test, model.y_test, model.target_scaler)
 
-        # Load configuration
         config = load_config("./config2.yaml")
 
-        # Create signals
         buy_signal_config = config["signals"]["buy_signal"]
         sell_signal_config = config["signals"]["sell_signal"]
         exit_signal = config["signals"]["exit_signal"]
 
-        # Create strategy
-        strategy = Strategy(config)
+        strategy = BinaryPlusExitStrategy(config)
         strategy.X_test_df = model.X_test_df
 
         # Run the backtest
         self._execute_trades(strategy, model, buy_signal_config, sell_signal_config, exit_signal)
-
-        # Evaluate decisions and calculate performance metrics
         strategy.evaluate_decisions()
         performance_metrics = PerformanceMetrics(model.data, strategy)
         performance_metrics.calculate_performance_metrics()
 
-    def _execute_trades(self, strategy, model, buy_signal_config, sell_signal_config, exit_signal):
+    def _execute_trades(self, BinaryPlusExitStrategy, model, buy_signal_config, sell_signal_config, exit_signal):
         """Execute trades based on the model predictions and strategy."""
         start_index = int(0.8 * len(model.data))
         for i in range(len(model.X_test_df) - model.time_step):
@@ -56,7 +50,7 @@ class BackTesting:
 
             # Create signal instance
             signal = Signal(current_price, buy_signal_config, sell_signal_config, exit_signal)
-            strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
+            BinaryPlusExitStrategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
 if __name__ == '__main__':
     bt = BackTesting()

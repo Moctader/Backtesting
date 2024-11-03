@@ -90,7 +90,7 @@ class Model:
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 epochs_without_improvement = 0
-                torch.save(self.model.state_dict(), 'lstm_model.pth')
+                #torch.save(self.model.state_dict(), 'lstm_model.pth')
             else:
                 epochs_without_improvement += 1
                 if epochs_without_improvement >= patience:
