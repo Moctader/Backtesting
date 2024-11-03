@@ -110,6 +110,11 @@ class BaseStrategy(ABC):
         buy_signal = signal.generate_buy_signal(predicted_high)
         sell_signal = signal.generate_sell_signal(self.buy_price)
         
+        if buy_signal:
+            sell_signal = False
+        elif sell_signal:
+            buy_signal = False
+        
         # Only generate exit signal if the signal is not an instance of BinarySignal
         if isinstance(signal, BinarySignal):
             exit_signal = False
@@ -224,27 +229,35 @@ class BaseStrategy(ABC):
         plt.show()
 
 class BinaryStrategy(BaseStrategy):
-        def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
-            self.current_price = current_price
+    def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
+        self.current_price = current_price
 
-            buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
-            print(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
+        buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
+        print(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
 
-            if self.position == 0 and buy_signal:
-                # Execute buy if no open position and buy signal is active
+        # Case 1: No position and buy signal is active
+        if self.position == 0 and buy_signal:
+            # Execute buy if no open position and buy signal is active
+            self.buy(future_timestamp, predicted_high)
+
+        # Case 2: Currently in a buy position and a sell signal or exit signal is active
+        elif self.position > 0 and (sell_signal or exit_signal):
+            # Execute sell to exit the buy position
+            self.sell(future_timestamp, predicted_high)  # Close the buy position
+            if sell_signal:
+                # Immediately open short position if sell signal is active
+                self.initiate_short_position()
+
+        # Case 3: Currently in a short position and a buy signal or exit signal is active
+        elif self.position < 0 and (buy_signal or exit_signal):
+            # Cover short position and re-buy if buy signal is active
+            self.buy_to_cover(future_timestamp, predicted_high)  # Close the short position
+            if buy_signal:
+                # Immediately open a buy position if buy signal is active
                 self.buy(future_timestamp, predicted_high)
 
-            elif self.position > 0 and sell_signal:
-                # Execute sell if position is open and sell signal is active
-                self.sell(future_timestamp, predicted_high)
-                self.initiate_short_position()  # Immediately open opposite position
+        self.update_portfolio_value()
 
-            elif self.position < 0 and buy_signal:
-                # Cover short position and re-buy if buy signal is active
-                self.buy_to_cover(future_timestamp, predicted_high)
-                self.buy(future_timestamp, predicted_high)  # Immediately open opposite position
-
-            self.update_portfolio_value()
 
 class BinaryPlusExitStrategy(BaseStrategy):
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
