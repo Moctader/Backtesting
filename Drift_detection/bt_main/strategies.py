@@ -16,7 +16,6 @@ from abc import ABC, abstractmethod
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
-
 class BaseStrategy(ABC):
     def __init__(self, config):
         strategy_config = config["strategies"]["trading_strategy"]["params"]
@@ -70,57 +69,59 @@ class BaseStrategy(ABC):
         print(f"Total Trades: {self.total_trades}, Winning Trades: {self.winning_trades}, Losing Trades: {self.losing_trades}")
 
     def fetch_actual_price(self, timestamp):
+        """Fetch the actual price for a given timestamp."""
         try:
             actual_row = self.X_test_df.loc[timestamp] if timestamp in self.X_test_df.index else None
             if actual_row is not None:
                 if 'high' in actual_row:
                     if pd.isna(actual_row['high']):
-                        print(f"'high' column is NaN for timestamp: {timestamp}")
+                        logging.debug(f"'high' column is NaN for timestamp: {timestamp}")
                         return None
                     else:
                         return actual_row['high']
                 else:
-                    print(f"'high' column not found in actual_row for timestamp: {timestamp}")
+                    logging.debug(f"'high' column not found in actual_row for timestamp: {timestamp}")
                     return None
             else:
-                print(f"No actual row found for this {timestamp}.")
-                # Print the relevant portion of the DataFrame for debugging
-                print(f"Data around the timestamp {timestamp}:")
-               # print(self.X_test_df.loc[timestamp - pd.Timedelta(minutes=5):timestamp + pd.Timedelta(minutes=5)])
+                logging.debug(f"No actual row found for this {timestamp}.")
+                logging.debug(f"Data around the timestamp {timestamp}:")
                 return None
         except KeyError:
-            print(f"KeyError: No data found for timestamp: {timestamp}")
+            logging.debug(f"KeyError: No data found for timestamp: {timestamp}")
             return None
         except IndexError:
-            print(f"IndexError: No data found for timestamp: {timestamp}")
+            logging.debug(f"IndexError: No data found for timestamp: {timestamp}")
             return None
 
     def evaluate_decisions(self):
+        """Evaluate the decisions made by the strategy."""
         y_true_signal = []
         y_pred_signal = []
         y_true_trade = []
         y_pred_trade = []
-       
 
         for decision in self.decisions:
             actual_price = self.fetch_actual_price(decision["timestamp"])
             decision["actual_price"] = actual_price
-           # print(f"Timestamp: {decision['timestamp']}, Prediction: {decision['prediction']}, Actual Price: {actual_price}")
 
             if actual_price is not None:
                 # Evaluate signals
                 if decision["action"] == "buy":
                     y_pred_signal.append(1)  # Predicted buy signal
-                    y_true_signal.append(1 if decision["prediction"]  > decision["current_price"] else 0)  # Actual buy signal if price increased
+                    y_true_signal.append(1 if decision["prediction"] > decision["current_price"] else 0)  # Actual buy signal if price increased
                 elif decision["action"] == "sell":
                     y_pred_signal.append(0)  # Predicted sell signal
-                    y_true_signal.append(0 if decision["prediction"]   < decision["current_price"] else 1)  # Actual sell signal if price decreased
+                    y_true_signal.append(0 if decision["prediction"] < decision["current_price"] else 1)  # Actual sell signal if price decreased
 
                 # Evaluate trade outcomes
                 if decision["action"] in ["buy", "sell"]:
                     y_pred_trade.append(1 if decision["action"] == "buy" else 0)  # Predicted trade outcome
                     y_true_trade.append(1 if actual_price > decision["current_price"] else 0)  # Actual trade outcome
 
+        self._plot_confusion_matrices(y_true_signal, y_pred_signal, y_true_trade, y_pred_trade)
+
+    def _plot_confusion_matrices(self, y_true_signal, y_pred_signal, y_true_trade, y_pred_trade):
+        """Plot confusion matrices for signals and trade outcomes."""
         # Signal Confusion Matrix
         cm_signal = confusion_matrix(y_true_signal, y_pred_signal, labels=[1, 0])
         disp_signal = ConfusionMatrixDisplay(confusion_matrix=cm_signal, display_labels=["Buy_signal", "Sell_signal"])
@@ -128,9 +129,8 @@ class BaseStrategy(ABC):
         plt.title("Signal Confusion Matrix")
         plt.show()
 
-        # Print signal confusion matrix
-        print("Signal Confusion Matrix:")
-        print(cm_signal)
+        logging.debug("Signal Confusion Matrix:")
+        logging.debug(cm_signal)
 
         # Trade Outcome Confusion Matrix
         cm_trade = confusion_matrix(y_true_trade, y_pred_trade, labels=[1, 0])
@@ -139,61 +139,26 @@ class BaseStrategy(ABC):
         plt.title("Trade Outcome Confusion Matrix")
         plt.show()
 
-        # Print trade outcome confusion matrix
-        print("Trade Outcome Confusion Matrix:")
-        print(cm_trade)
+        logging.debug("Trade Outcome Confusion Matrix:")
+        logging.debug(cm_trade)
 
-        # Calculate and print relative values for signal confusion matrix
+        # Relative Signal Confusion Matrix
         cm_signal_relative = cm_signal.astype('float') / cm_signal.sum(axis=1)[:, np.newaxis]
-        print("Relative Signal Confusion Matrix:")
-        print(cm_signal_relative)
-
-        # Display relative signal confusion matrix
+        logging.debug("Relative Signal Confusion Matrix:")
+        logging.debug(cm_signal_relative)
         disp_signal_relative = ConfusionMatrixDisplay(confusion_matrix=cm_signal_relative, display_labels=["Buy", "Sell"])
         disp_signal_relative.plot()
         plt.title("Relative Signal Confusion Matrix")
         plt.show()
 
-        # Calculate and print relative values for trade outcome confusion matrix
+        # Relative Trade Outcome Confusion Matrix
         cm_trade_relative = cm_trade.astype('float') / cm_trade.sum(axis=1)[:, np.newaxis]
-        print("Relative Trade Outcome Confusion Matrix:")
-        print(cm_trade_relative)
-
-        # Display relative trade outcome confusion matrix
+        logging.debug("Relative Trade Outcome Confusion Matrix:")
+        logging.debug(cm_trade_relative)
         disp_trade_relative = ConfusionMatrixDisplay(confusion_matrix=cm_trade_relative, display_labels=["Buy", "Sell"])
         disp_trade_relative.plot()
         plt.title("Relative Trade Outcome Confusion Matrix")
         plt.show()
-        
-        
-        # Calculate confusion matrix
-        cm = confusion_matrix(y_true_trade, y_pred_trade, labels=[1, 0])
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Buy", "Sell"])
-        disp.plot()
-        plt.title("Confusion Matrix of Trading Decisions")
-        plt.show()
-
-        # Print confusion matrix
-        print("Confusion Matrix:")
-        print(cm)
-
-        # Calculate relative values
-        cm_relative = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-
-        # Print relative confusion matrix
-        print("Relative Confusion Matrix:")
-        print(cm_relative)
-
-        # Display relative confusion matrix
-        disp_relative = ConfusionMatrixDisplay(confusion_matrix=cm_relative, display_labels=["Buy", "Sell"])
-        disp_relative.plot()
-        plt.title("Relative Confusion Matrix of Trading Decisions")
-        plt.show()
-
-
-
-
-        
 
 class Strategy(BaseStrategy):
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
