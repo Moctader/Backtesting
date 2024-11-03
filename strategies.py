@@ -11,6 +11,7 @@ import logging
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from typing import Optional
 from abc import ABC, abstractmethod
+from signals import BinarySignal, BinaryPlusExitSignal, MulticlassSignal
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -77,7 +78,7 @@ class BaseStrategy(ABC):
         """Update portfolio value."""
         portfolio_value = self.cash + self.position * self.current_price
         self.portfolio_value.append(portfolio_value)
-        logging.debug(f"Updated portfolio value: {portfolio_value}")
+        #logging.debug(f"Updated portfolio value: {portfolio_value}")
 
     def initiate_short_position(self):
         """Initiate a short position."""
@@ -103,11 +104,18 @@ class BaseStrategy(ABC):
             self.losing_trades += 1
         self.total_trades += 1
 
+   
     def generate_signals(self, signal, predicted_high):
         """Generate buy, sell, and exit signals."""
         buy_signal = signal.generate_buy_signal(predicted_high)
         sell_signal = signal.generate_sell_signal(self.buy_price)
-        exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high)
+        
+        # Only generate exit signal if the signal is not an instance of BinarySignal
+        if isinstance(signal, BinarySignal):
+            exit_signal = False
+        else:
+            exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high) if hasattr(signal, 'generate_exit_signal') else False
+        
         return buy_signal, sell_signal, exit_signal
 
     @abstractmethod
@@ -216,41 +224,27 @@ class BaseStrategy(ABC):
         plt.show()
 
 class BinaryStrategy(BaseStrategy):
-    def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
-        """Execute trades based on signals and manage positions."""
-        self.current_price = current_price
+        def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
+            self.current_price = current_price
 
-        # Generate signals
-        buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
+            buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
+            print(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
 
+            if self.position == 0 and buy_signal:
+                # Execute buy if no open position and buy signal is active
+                self.buy(future_timestamp, predicted_high)
 
-        # Log the generated signals
-        logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
+            elif self.position > 0 and sell_signal:
+                # Execute sell if position is open and sell signal is active
+                self.sell(future_timestamp, predicted_high)
+                self.initiate_short_position()  # Immediately open opposite position
 
-        # Buy decision
-        if self.position == 0 and buy_signal:
-            logging.debug(f"Executing buy at {future_timestamp} with current price: {self.current_price}")
-            self.buy(future_timestamp, predicted_high)
+            elif self.position < 0 and buy_signal:
+                # Cover short position and re-buy if buy signal is active
+                self.buy_to_cover(future_timestamp, predicted_high)
+                self.buy(future_timestamp, predicted_high)  # Immediately open opposite position
 
-        # Sell decision
-        elif self.position > 0 and sell_signal:
-            logging.debug(f"Executing sell at {future_timestamp} with current price: {self.current_price}")
-            self.sell(future_timestamp, predicted_high)
-
-        # Exit decision
-        elif self.position > 0 and exit_signal:
-            logging.debug(f"Executing exit at {future_timestamp} with current price: {self.current_price}")
-            self.exit(future_timestamp, predicted_high)
-
-        # Buy to cover short position
-        elif self.position < 0 and buy_signal:
-            logging.debug(f"Executing buy to cover at {future_timestamp} with current price: {self.current_price}")
-            self.buy_to_cover(future_timestamp, predicted_high)
-
-        else:
-            logging.debug(f"No trade executed at {future_timestamp} with current price: {self.current_price}")
-
-        self.update_portfolio_value()
+            self.update_portfolio_value()
 
 class BinaryPlusExitStrategy(BaseStrategy):
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
