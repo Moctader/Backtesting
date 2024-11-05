@@ -74,4 +74,4 @@ if __name__ == '__main__':
     quartiles = [1.13, 1.14, 1.15]  
 
     bt = BackTesting()
-    bt.run_backtest('./EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryPlusExitStrategy", quartiles=quartiles)
+    bt.run_backtest('./EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryStrategy", quartiles=quartiles)

@@ -1,0 +1,19 @@
+signals:
+  buy_signal:
+    function: "lambda current_price, predicted_high: current_price < predicted_high"
+
+  sell_signal:
+    function: "lambda current_price, buy_price: current_price > buy_price"
+
+  exit_signal:
+    function: "lambda current_price, predicted_high, buy_price: current_price >= predicted_high or current_price <= buy_price"
+
+strategies:
+  trading_strategy:
+    description: "Strategy combining buy, sell, and stop-loss signals."
+    buy_signal: "buy_signal"
+    sell_signal: "sell_signal"
+    exit_signal: "exit_signal"
+    params:
+      initial_cash: 100000  
+      position_size_factor: 0.1

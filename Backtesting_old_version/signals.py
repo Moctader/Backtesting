@@ -18,9 +18,10 @@ class BaseSignal(ABC):
         pass
 
     def generate_exit_signal(self, buy_price, predicted_high):
-        if self.exit_signal and buy_price is not None and predicted_high is not None:
-            return self.exit_signal(self.current_price, buy_price, predicted_high)
-        return False
+        pass
+
+
+
 
 class BinarySignal(BaseSignal):
     def generate_buy_signal(self, predicted_high):
@@ -28,6 +29,9 @@ class BinarySignal(BaseSignal):
 
     def generate_sell_signal(self, buy_price):
         return self.sell_signal(self.current_price, buy_price) if buy_price else False
+    
+
+
 
 class BinaryPlusExitSignal(BaseSignal):
     def generate_buy_signal(self, predicted_high):
@@ -38,6 +42,8 @@ class BinaryPlusExitSignal(BaseSignal):
 
     def generate_exit_signal(self, buy_price, predicted_high):
         return self.exit_signal(self.current_price, buy_price, predicted_high) if buy_price and predicted_high else False
+    
+
 
 class MulticlassSignal(BaseSignal):
     def __init__(self, current_price, buy_signal, sell_signal, exit_signal, quartiles):
