@@ -1,5 +1,3 @@
-import yaml
-import torch
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
@@ -12,10 +10,6 @@ from typing import Optional
 from abc import ABC, abstractmethod
 from signals.binary_signal import BinarySignal
 from signals.binary_plus_exit_signal import BinaryPlusExitSignal
-from signals.multi_class_signal import MulticlassSignal
-
-# WHICH OF THESE IMPORTS ARE ACTUALLY NECESSARY?
-# YOUR REQUIREMENTS.TXT WAS ALMOST 100 LINES LONG -- THAT SOUNDS INSANE
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -38,6 +32,7 @@ class BaseStrategy(ABC):
         self.previous_signal = None
         self.signal_strength = 1
         self.signal = None
+        self.X_test_df = None  # Initialize X_test_df as an attribute
 
     def make_decision(self, timestamp, prediction, action, current_price):
         """Log each decision with debugging information."""
@@ -50,23 +45,22 @@ class BaseStrategy(ABC):
         })
 
     def buy(self, future_timestamp, predicted_high):
-        """Execute a buy decision."""
         amount_to_invest = self.position_size_factor * self.cash * self.signal_strength
         shares_to_buy = amount_to_invest // self.current_price
         self.cash -= shares_to_buy * self.current_price
         self.position += shares_to_buy
         self.buy_price = self.current_price
-        self.total_trades += 1
+        self.total_trades += 1  # Update total trades count
         self.make_decision(future_timestamp, predicted_high, "buy", self.current_price)  # Log buy event
 
     def sell(self, future_timestamp, predicted_high):
-        """Execute a sell decision."""
         trade_value = self.position * self.current_price
         self.cash += trade_value
         profit_or_loss = trade_value - (self.position * self.buy_price)
         self.track_trade_outcome(profit_or_loss)
         self.position = 0
         self.buy_price = None
+        self.total_trades += 1  # Update total trades count
         self.make_decision(future_timestamp, predicted_high, "sell", self.current_price)  # Log sell event
 
     def exit(self, future_timestamp, predicted_high):
@@ -76,29 +70,27 @@ class BaseStrategy(ABC):
         self.total_trades += 1
         self.position = 0
         self.buy_price = None
-        self.make_decision(future_timestamp, predicted_high, "exit", self.current_price)  # Log exit event
-
-    def update_portfolio_value(self):
-        """Update portfolio value."""
-        portfolio_value = self.cash + self.position * self.current_price
-        self.portfolio_value.append(portfolio_value)
-        #logging.debug(f"Updated portfolio value: {portfolio_value}")
-
-    def initiate_short_position(self):
-        """Initiate a short position."""
-        amount_to_invest = self.position_size_factor * self.cash
-        shares_to_short = amount_to_invest // self.current_price
-        self.cash += shares_to_short * self.current_price  # Short proceeds added to cash
-        self.position -= shares_to_short
+        self.make_decision(future_timestamp, predicted_high, "exit", self.current_price)  
 
     def buy_to_cover(self, future_timestamp, predicted_high):
-        """Buy to cover a short position."""
         trade_value = abs(self.position) * self.current_price
         self.cash -= trade_value
         profit_or_loss = -trade_value
         self.track_trade_outcome(profit_or_loss)
         self.position = 0
-        self.buy(future_timestamp, predicted_high)  # Re-buy after covering
+        self.total_trades += 1  # Update total trades count
+        self.make_decision(future_timestamp, predicted_high, "buy_to_cover", self.current_price)  # Log buy to cover event
+
+    def update_portfolio_value(self):
+        portfolio_value = self.cash + self.position * self.current_price
+        self.portfolio_value.append(portfolio_value)
+        #logging.debug(f"Updated portfolio value: {portfolio_value}")
+
+    def initiate_short_position(self):
+        amount_to_invest = self.position_size_factor * self.cash
+        shares_to_short = amount_to_invest // self.current_price
+        self.cash += shares_to_short * self.current_price  # Short proceeds added to cash
+        self.position -= shares_to_short
 
     def track_trade_outcome(self, profit_or_loss):
         """Track the outcome of a trade."""
@@ -108,16 +100,13 @@ class BaseStrategy(ABC):
             self.losing_trades += 1
         self.total_trades += 1
 
-   
     def generate_signals(self, signal, predicted_high):
         """Generate buy, sell, and exit signals."""
         buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = signal.generate_sell_signal(self.buy_price)
-        
-        if buy_signal:
-            sell_signal = False
-        elif sell_signal:
-            buy_signal = False
+        sell_signal = False
+        if self.buy_price is not None:
+            sell_signal = signal.generate_sell_signal(self.buy_price)
+        logging.debug(f"self.buy_price={self.buy_price}, predicted_high={predicted_high}, buy_signal={buy_signal}, sell_signal={sell_signal}")
         
         # Only generate exit signal if the signal is not an instance of BinarySignal
         if isinstance(signal, BinarySignal):
@@ -131,10 +120,6 @@ class BaseStrategy(ABC):
     def execute_trade(self, signal, future_timestamp, predicted_high, current_price):
         """Execute trades based on signals and manage positions."""
         pass
-
-    def print_trade_statistics(self):
-        """Print the total trades and winning trades."""
-        print(f"Total Trades: {self.total_trades}, Winning Trades: {self.winning_trades}, Losing Trades: {self.losing_trades}")
 
     def fetch_actual_price(self, timestamp):
         """Fetch the actual price for a given timestamp."""
@@ -189,7 +174,6 @@ class BaseStrategy(ABC):
                     y_pred_trade.append(0)  # Predicted sell signal
                     y_true_trade.append(0 if actual_price < decision["current_price"] else 1)  # Actual sell signal if price decreased
 
-          
         self._plot_confusion_matrices(y_true_signal, y_pred_signal, y_true_trade, y_pred_trade)
 
     def _plot_confusion_matrices(self, y_true_signal, y_pred_signal, y_true_trade, y_pred_trade):

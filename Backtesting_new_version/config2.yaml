@@ -1,13 +1,12 @@
 signals:
   buy_signal:
     function: "lambda current_price, predicted_high: current_price < predicted_high"
-
   sell_signal:
     function: "lambda current_price, buy_price: current_price > buy_price"
-
   exit_signal:
-    function: "lambda current_price, predicted_high, buy_price: current_price >= predicted_high or current_price <= buy_price"
+    function: "lambda current_price, buy_price, predicted_high: current_price >= predicted_high and current_price <= buy_price"
 
+    
 strategies:
   trading_strategy:
     description: "Strategy combining buy, sell, and stop-loss signals."

@@ -8,4 +8,4 @@ class BinaryPlusExitSignal(BaseSignal):
         return self.sell_signal(self.current_price, buy_price) if buy_price else False
 
     def generate_exit_signal(self, buy_price, predicted_high):
-        return self.exit_signal(self.current_price, buy_price, predicted_high) if buy_price and predicted_high else False
+        return super().generate_exit_signal(buy_price, predicted_high)

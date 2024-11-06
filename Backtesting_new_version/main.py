@@ -3,10 +3,8 @@ import numpy as np
 from models import Model
 from strategies.binary_strategy import BinaryStrategy
 from strategies.binary_plus_exit_strategy import  BinaryPlusExitStrategy
-from strategies.multi_class_strategy import MulticlassStrategy
 # from performance_metrics import PerformanceMetrics
 from utils import load_config
-from signals.multi_class_signal import MulticlassSignal
 from signals.binary_signal import BinarySignal
 from signals.binary_plus_exit_signal import BinaryPlusExitSignal
 
@@ -32,8 +30,7 @@ class BackTesting:
             strategy = BinaryStrategy(config)
         elif strategy_type == "BinaryPlusExitStrategy":
             strategy = BinaryPlusExitStrategy(config)
-        elif strategy_type == "MulticlassStrategy":
-            strategy = MulticlassStrategy(config)
+     
         else:
             raise ValueError(f"Unknown strategy type: {strategy_type}")
 
@@ -63,10 +60,8 @@ class BackTesting:
             if i == 0:
                 print(f"First future_timestamp: {future_timestamp}")
 
-            # Create signal instance based on strategy type
-            if isinstance(strategy, MulticlassStrategy):
-                signal = MulticlassSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config, quartiles)
-            elif isinstance(strategy, BinaryStrategy):
+
+            if isinstance(strategy, BinaryStrategy):
                 signal = BinarySignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
             elif isinstance(strategy, BinaryPlusExitStrategy):
                 signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
@@ -78,4 +73,4 @@ if __name__ == "__main__":
     quartiles = [1.13, 1.14, 1.15]  
     bt = BackTesting()
     #bt.run_backtest('./EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryPlusExitStrategy", quartiles=quartiles)
-    bt.run_backtest('../EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryStrategy", quartiles=quartiles)
+    bt.run_backtest('./EODHD_EURUSD_HISTORICAL_2019_2024_1min.csv', strategy_type="BinaryPlusExitStrategy", quartiles=quartiles)
