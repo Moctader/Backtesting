@@ -37,8 +37,8 @@ class TestBaseStrategy(unittest.TestCase):
         """Test the buy method to ensure it performs correctly."""
         future_timestamp = "2024-01-01"
         predicted_high = 55
-        self.strategy.current_price = 50  
         self.strategy.signal_strength = 1  
+        self.strategy.current_price=50
 
         # Mock the make_decision method to avoid side effects and check calls
         self.strategy.make_decision = MagicMock()
@@ -79,7 +79,6 @@ class TestBaseStrategy(unittest.TestCase):
 
 
 
-
     def test_generate_signals_with_binary_signal(self):
         """Test generate_signals with BinarySignal which should not generate exit signal."""
         # Create a BinarySignal instance with appropriate configurations
@@ -100,8 +99,6 @@ class TestBaseStrategy(unittest.TestCase):
         self.assertFalse(sell_signal, "Expected sell signal to be False")
 
 
-
-
     def test_update_portfolio_value(self):
         """Test that portfolio value updates correctly."""
         self.strategy.current_price = 100
@@ -110,6 +107,7 @@ class TestBaseStrategy(unittest.TestCase):
 
         self.strategy.update_portfolio_value()
         self.assertEqual(self.strategy.portfolio_value[-1], 90000 + 10 * 100)
+
 
     @patch.object(BaseStrategy, 'fetch_actual_price')
     def test_evaluate_decisions(self, mock_fetch_actual_price):

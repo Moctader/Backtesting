@@ -19,5 +19,3 @@ class BaseSignal(ABC):
     def generate_sell_signal(self, buy_price):
         pass
 
-    def generate_exit_signal(self, buy_price, predicted_high):
-        return False
