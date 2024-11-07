@@ -20,7 +20,6 @@ class BinaryPlusExitStrategy(BaseStrategy):
 
         buy_signal, sell_signal, exit_signal = self.generate_signals(signal, predicted_high)
 
-
         # Log the generated signals
         logging.debug(f"Buy Signal: {buy_signal}, Sell Signal: {sell_signal}, Exit Signal: {exit_signal}")
 

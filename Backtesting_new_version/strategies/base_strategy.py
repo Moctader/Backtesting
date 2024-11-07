@@ -58,10 +58,11 @@ class BaseStrategy(ABC):
         self.cash += trade_value
         profit_or_loss = trade_value - (self.position * self.buy_price)
         self.track_trade_outcome(profit_or_loss)
-        self.position = 0
-        self.buy_price = None
+        self.position = 0  # Reset position after selling
+        self.buy_price = None  # Reset buy_price after selling
         self.total_trades += 1  # Update total trades count
         self.make_decision(future_timestamp, predicted_high, "sell", self.current_price)  # Log sell event
+        logging.debug(f"Sell: Position: {self.position}, Cash: {self.cash}, Total Trades: {self.total_trades}")
 
     def exit(self, future_timestamp, predicted_high):
         """Execute an exit decision."""
