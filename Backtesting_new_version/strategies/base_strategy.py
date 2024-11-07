@@ -104,10 +104,12 @@ class BaseStrategy(ABC):
     def generate_signals(self, signal, predicted_high):
         """Generate buy, sell, and exit signals."""
         buy_signal = signal.generate_buy_signal(predicted_high)
-        sell_signal = False
         if self.buy_price is not None:
             sell_signal = signal.generate_sell_signal(self.buy_price)
+        else:
+            sell_signal = False
         logging.debug(f"self.current_price={self.current_price}, self.buy_price={self.buy_price}, predicted_high={predicted_high}, buy_signal={buy_signal}, sell_signal={sell_signal}")
+
         
         # Only generate exit signal if the signal is not an instance of BinarySignal
         if isinstance(signal, BinarySignal):
