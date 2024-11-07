@@ -20,8 +20,4 @@ class BaseSignal(ABC):
         pass
 
     def generate_exit_signal(self, buy_price, predicted_high):
-        if self.exit_signal and buy_price is not None and predicted_high is not None:
-            result = self.exit_signal(self.current_price, buy_price, predicted_high)
-            logging.debug(f"Exit Signal: current_price={self.current_price}, buy_price={buy_price}, predicted_high={predicted_high}, result={result}")
-            return result
         return False

@@ -17,7 +17,7 @@ class TestStrategies(unittest.TestCase):
         }
         self.mock_df = pd.DataFrame({
             'timestamp': pd.date_range(start='2022-01-01', periods=10, freq='D'),
-            'current_price': [100, 105, 90, 108, 110, 89, 105, 103, 101, 99],
+            'current_price': [100, 105, 90, 108, 110, 89, 111, 103, 101, 99],
             'predicted_high': [150, 100, 40, 60, 115, 110, 190, 106, 200, 102]
         })
 
@@ -32,8 +32,8 @@ class TestStrategies(unittest.TestCase):
             current_price = row['current_price']
             signal = BinarySignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
             strategy.execute_trade(signal, row['timestamp'], row['predicted_high'], current_price)
-            print(f"Index: {index}, Current Price: {current_price}, Buy Price: {strategy.buy_price}")
-        self.assertEqual(strategy.total_trades, 6)
+            #print(f"Index: {index}, Current Price: {current_price}, Buy Price: {strategy.buy_price}")
+        self.assertEqual(strategy.total_trades, 9)
 
 if __name__ == '__main__':
     unittest.main()

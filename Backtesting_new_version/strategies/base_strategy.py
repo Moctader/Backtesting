@@ -89,6 +89,7 @@ class BaseStrategy(ABC):
     def initiate_short_position(self):
         amount_to_invest = self.position_size_factor * self.cash
         shares_to_short = amount_to_invest // self.current_price
+        self.total_trades += 1
         self.cash += shares_to_short * self.current_price  # Short proceeds added to cash
         self.position -= shares_to_short
 
@@ -98,7 +99,6 @@ class BaseStrategy(ABC):
             self.winning_trades += 1
         else:
             self.losing_trades += 1
-        self.total_trades += 1
 
     def generate_signals(self, signal, predicted_high):
         """Generate buy, sell, and exit signals."""
@@ -106,11 +106,12 @@ class BaseStrategy(ABC):
         sell_signal = False
         if self.buy_price is not None:
             sell_signal = signal.generate_sell_signal(self.buy_price)
-        logging.debug(f"self.buy_price={self.buy_price}, predicted_high={predicted_high}, buy_signal={buy_signal}, sell_signal={sell_signal}")
+        logging.debug(f"self.current_price={self.current_price}, self.buy_price={self.buy_price}, predicted_high={predicted_high}, buy_signal={buy_signal}, sell_signal={sell_signal}")
         
         # Only generate exit signal if the signal is not an instance of BinarySignal
         if isinstance(signal, BinarySignal):
             exit_signal = False
+            return buy_signal, sell_signal
         else:
             exit_signal = signal.generate_exit_signal(self.buy_price, predicted_high) if hasattr(signal, 'generate_exit_signal') else False
         

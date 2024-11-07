@@ -5,5 +5,4 @@ class BinarySignal(BaseSignal):
         return self.buy_signal(self.current_price, predicted_high)
 
     def generate_sell_signal(self, buy_price):
-        print(f"Current Price: {self.current_price}, Buy Price: {buy_price}")
         return self.sell_signal(self.current_price, buy_price) 
