@@ -27,8 +27,8 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high or current_price <= buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
+        exit_signal_config = {"function": "lambda current_price, predicted_high: current_price == predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
@@ -61,8 +61,8 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high or current_price <= buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
+        exit_signal_config = {"function": "lambda current_price, predicted_high: current_price == predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
@@ -94,8 +94,8 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high or current_price <= buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
+        exit_signal_config = {"function": "lambda current_price, predicted_high: current_price == predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
@@ -112,7 +112,7 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
         self.strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
         # Assert that sell was called once
-        #self.strategy.sell.assert_called_once_with(future_timestamp, predicted_high)
+        self.strategy.sell.assert_called_once_with(future_timestamp, predicted_high)
         # Assert that update_portfolio_value was called once
         self.strategy.update_portfolio_value.assert_called_once()
         # Ensure other actions were not taken
@@ -123,13 +123,13 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
         """Test Case 4: Holding a position, exit signal is active"""
         self.strategy.position = 1  # Assume holding a position
         future_timestamp = "2024-11-07T10:00:00"
-        predicted_high = 101
+        predicted_high = 100
         current_price = 100
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high or current_price <= buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
+        exit_signal_config = {"function": "lambda current_price, predicted_high: current_price == predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinaryPlusExitSignal(current_price, buy_signal_config, sell_signal_config, exit_signal_config)
@@ -145,7 +145,7 @@ class TestBinaryPlusExitStrategy(unittest.TestCase):
         self.strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
         # Assert that exit was called once
-       # self.strategy.exit.assert_called_once_with(future_timestamp, predicted_high)
+        self.strategy.exit.assert_called_once_with(future_timestamp, predicted_high)
         # Assert that update_portfolio_value was called once
         self.strategy.update_portfolio_value.assert_called_once()
         # Ensure other actions were not taken

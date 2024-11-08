@@ -9,5 +9,5 @@ class BinaryPlusExitSignal(BaseSignal):
 
     def generate_exit_signal(self, predicted_high):
         if self.exit_signal and self.current_price is not None and predicted_high is not None and predicted_high is not None:
-            return self.exit_signal(self.current_price, predicted_high, predicted_high)
+            return self.exit_signal(self.current_price, predicted_high)
         return False

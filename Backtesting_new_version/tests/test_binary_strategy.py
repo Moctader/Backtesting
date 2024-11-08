@@ -25,7 +25,7 @@ class TestBinaryStrategy(unittest.TestCase):
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinarySignal(current_price, buy_signal_config, sell_signal_config)
@@ -58,7 +58,7 @@ class TestBinaryStrategy(unittest.TestCase):
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinarySignal(current_price, buy_signal_config, sell_signal_config)
@@ -85,12 +85,12 @@ class TestBinaryStrategy(unittest.TestCase):
         """Test Case 3: In a short position, buy signal is active"""
         self.strategy.position = -1  # Assume in a short position
         future_timestamp = "2024-11-07T10:00:00"
-        predicted_high = 90
+        predicted_high = 110
         current_price = 100
 
         # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: predicted_high > predicted_high"}
 
         # Create an instance of BinarySignal
         signal = BinarySignal(current_price, buy_signal_config, sell_signal_config)
@@ -105,8 +105,8 @@ class TestBinaryStrategy(unittest.TestCase):
         self.strategy.execute_trade(signal, future_timestamp, predicted_high, current_price)
 
         # Assert that buy_to_cover and buy were each called once
-        #self.strategy.buy_to_cover.assert_called_once_with(future_timestamp, predicted_high)
-        #self.strategy.buy.assert_called_once_with(future_timestamp, predicted_high)
+        self.strategy.buy_to_cover.assert_called_once_with(future_timestamp, predicted_high)
+        self.strategy.buy.assert_called_once_with(future_timestamp, predicted_high)
         # Assert that update_portfolio_value was called once
         self.strategy.update_portfolio_value.assert_called_once()
         # Ensure other actions were not taken

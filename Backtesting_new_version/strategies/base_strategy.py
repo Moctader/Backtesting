@@ -62,7 +62,7 @@ class BaseStrategy(ABC):
         self.buy_price = None  # Reset buy_price after selling
         self.total_trades += 1  # Update total trades count
         self.make_decision(future_timestamp, predicted_high, "sell", self.current_price)  # Log sell event
-        logging.debug(f"Sell: Position: {self.position}, Cash: {self.cash}, Total Trades: {self.total_trades}")
+        #logging.debug(f"Sell: Position: {self.position}, Cash: {self.cash}, Total Trades: {self.total_trades}")
 
     def exit(self, future_timestamp, predicted_high):
         """Execute an exit decision."""
@@ -115,7 +115,7 @@ class BaseStrategy(ABC):
             exit_signal = False
             return buy_signal, sell_signal
         else:
-            exit_signal = signal.generate_exit_signal(predicted_high, predicted_high) if hasattr(signal, 'generate_exit_signal') else False
+            exit_signal = signal.generate_exit_signal(predicted_high) if hasattr(signal, 'generate_exit_signal') else False
 
         return buy_signal, sell_signal, exit_signal
     

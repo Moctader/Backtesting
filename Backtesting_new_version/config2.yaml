@@ -2,9 +2,9 @@ signals:
   buy_signal:
     function: "lambda current_price, predicted_high: current_price < predicted_high"
   sell_signal:
-    function: "lambda current_price, buy_price: current_price > predicted_high"
+    function: "lambda current_price, predicted_high: current_price > predicted_high"
   exit_signal:
-    function: "lambda current_price, buy_price, predicted_high: current_price >= predicted_high and current_price <= predicted_high"
+    function: "lambda current_price, predicted_high: current_price == predicted_high"
 
     
 strategies:

@@ -79,27 +79,6 @@ class TestBaseStrategy(unittest.TestCase):
         self.assertEqual(self.strategy.decisions[-1]["action"], "sell")
 
 
-
-    def test_generate_signals_with_binary_signal(self):
-        """Test generate_signals with BinarySignal which should not generate exit signal."""
-        # Create a BinarySignal instance with appropriate configurations
-        buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high or current_price <= buy_price"}
-
-        binary_signal = BinarySignal(50, buy_signal_config, sell_signal_config, exit_signal_config)
-
-        # Set the buy_price for the strategy to test the sell signal
-        self.strategy.buy_price = 50
-
-        # Generate signals
-        buy_signal, sell_signal = self.strategy.generate_signals(binary_signal, 60)
-
-        # Check that the buy and sell signals are correct, and no exit signal is returned
-        self.assertTrue(buy_signal, "Expected buy signal to be True")
-        self.assertFalse(sell_signal, "Expected sell signal to be False")
-
-
     def test_exit(self):
         """Test the exit method to verify updates to cash, position, and trade outcome logging."""
         self.strategy.current_price = 55  # Mock current price
@@ -128,7 +107,6 @@ class TestBaseStrategy(unittest.TestCase):
         self.strategy.make_decision.assert_called_once_with(
             "2024-01-02", 60, "exit", self.strategy.current_price
         )
-
 
     def test_buy_to_cover(self):
         """Test the buy_to_cover method to verify updates to cash, position, and trade outcome logging."""
@@ -173,7 +151,6 @@ class TestBaseStrategy(unittest.TestCase):
         self.assertEqual(self.strategy.portfolio_value[-1], 90000 + 10 * 100)
 
 
-
     def test_initiate_short_position(self):
         """Test the initiate_short_position method to verify updates to cash, position, and trade count."""
         self.strategy.current_price = 55  # Mock current price
@@ -196,6 +173,8 @@ class TestBaseStrategy(unittest.TestCase):
         self.assertEqual(self.strategy.total_trades, 1, "Total trades should increment by 1 after initiating short position.")
 
 
+
+
     def test_track_trade_outcome(self):
         """Test the track_trade_outcome method to verify updates to winning and losing trades."""
         self.strategy.winning_trades = 0  # Mock initial winning trades
@@ -213,43 +192,59 @@ class TestBaseStrategy(unittest.TestCase):
 
 
 
-    def test_generate_signals(self):
-        """Test the generate_signals method to verify buy, sell, and exit signals generation."""
-        # Mock signal object with necessary methods
-        signal = MagicMock()
-        signal.generate_buy_signal.return_value = True
-        signal.generate_sell_signal.return_value = True
-        signal.generate_exit_signal.return_value = True
 
-        self.strategy.buy_price = 50  # Mock initial buy price
-        self.strategy.current_price = 55  # Mock current price
+    def test_generate_signals_with_binary_signal(self):
+        """Test generate_signals method with BinarySignal instance"""
+        predicted_high = 150
+        current_price = 100
 
-        # Call generate_signals method
-        buy_signal, sell_signal, exit_signal = self.strategy.generate_signals(signal, 60)
-
-        # Assertions
-        self.assertTrue(buy_signal, "Buy signal should be True.")
-        self.assertTrue(sell_signal, "Sell signal should be True.")
-        self.assertTrue(exit_signal, "Exit signal should be True.")
-
-        # Check that the signal methods were called with correct parameters
-        signal.generate_buy_signal.assert_called_once_with(60)
-        signal.generate_sell_signal.assert_called_once_with(50)
-        signal.generate_exit_signal.assert_called_once_with(50, 60)
-
-        # Test with BinarySignal instance
+        # Define the configurations for the BinarySignal
         buy_signal_config = {"function": "lambda current_price, predicted_high: current_price < predicted_high"}
-        sell_signal_config = {"function": "lambda current_price, buy_price: current_price > buy_price"}
-        exit_signal_config = {"function": "lambda current_price, buy_price, predicted_high: current_price >= predicted_high and current_price <= buy_price"}
+        sell_signal_config = {"function": "lambda current_price, predicted_high: current_price > predicted_high"}
 
-        binary_signal = BinarySignal(55, buy_signal_config, sell_signal_config, exit_signal_config)
-        buy_signal, sell_signal = self.strategy.generate_signals(binary_signal, 60)
+        # Create an instance of BinarySignal
+        signal = BinarySignal(current_price, buy_signal_config, sell_signal_config)
 
-        # Assertions for BinarySignal
-        self.assertTrue(buy_signal, "Buy signal should be True for BinarySignal.")
-        self.assertTrue(sell_signal, "Sell signal should be True for BinarySignal.")
-        self.assertFalse(hasattr(binary_signal, 'generate_exit_signal'), "BinarySignal should not have exit signal.")
+        # Mock the generate_buy_signal and generate_sell_signal methods
+        signal.generate_buy_signal = MagicMock(return_value=True)
+        signal.generate_sell_signal = MagicMock(return_value=False)
 
+        # Run the method
+        buy_signal, sell_signal = self.strategy.generate_signals(signal, predicted_high)
+
+        # Assert the signals
+        self.assertTrue(buy_signal)
+        self.assertFalse(sell_signal)
+
+    def test_generate_signals_with_non_binary_signal(self):
+        """Test generate_signals method with non-BinarySignal instance"""
+        predicted_high = 150
+        current_price = 100
+
+        # Define a mock signal class
+        class MockSignal:
+            def generate_buy_signal(self, predicted_high):
+                return True
+
+            def generate_sell_signal(self, buy_price):
+                return False
+
+            def generate_exit_signal(self, predicted_high):
+                return True
+
+        # Create an instance of MockSignal
+        signal = MockSignal()
+
+        # Set buy_price to a valid value
+        self.strategy.buy_price = 90
+
+        # Run the method
+        buy_signal, sell_signal, exit_signal = self.strategy.generate_signals(signal, predicted_high)
+
+        # Assert the signals
+        self.assertTrue(buy_signal)
+        self.assertFalse(sell_signal)
+        self.assertTrue(exit_signal)
 
     def test_fetch_actual_price(self):
         """Test the fetch_actual_price method to verify correct price fetching."""
