@@ -1,0 +1,59 @@
+args:
+    strategy_name: trend_based_Strategy
+    batch_window: 10
+init:
+    capital: 1000.0
+    stocks: 0.0
+    stock_value: 1.14604
+    liquid: 1000.0
+final:
+    capital: 1000.0
+    stocks: 0
+    stock_value: 1.14948
+    liquid: 1000.0
+n_decisions:
+    buy: 0
+    sell: 0
+    hold: 41
+decision_sequence:
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold
+-   decision: hold

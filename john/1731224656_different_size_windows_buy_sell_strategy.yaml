@@ -1,0 +1,148 @@
+args:
+    strategy_name: different_size_windows_buy_sell_strategy
+    batch_window: 7
+init:
+    capital: 1000.0
+    stocks: 0.0
+    stock_value: 1.14604
+    liquid: 1000.0
+final:
+    capital: 994.2995500000002
+    stocks: 5
+    stock_value: 1.14948
+    liquid: 1000.0469500000002
+n_decisions:
+    buy: 24
+    sell: 19
+    hold: 1
+decision_sequence:
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+        for all window sizes
+-   decision: hold
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average for
+        all window sizes

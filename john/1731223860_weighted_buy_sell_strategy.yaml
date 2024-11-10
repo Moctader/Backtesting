@@ -1,0 +1,114 @@
+args:
+    strategy_name: weighted_buy_sell_strategy
+    batch_window: 3
+init:
+    capital: 1000.0
+    stocks: 0.0
+    stock_value: 1.14604
+    liquid: 1000.0
+final:
+    capital: 990.8630400000002
+    stocks: 8
+    stock_value: 1.14948
+    liquid: 1000.0588800000002
+n_decisions:
+    buy: 28
+    sell: 20
+    hold: 0
+decision_sequence:
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: buy
+    reason: Predicted weighted average is higher than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
+-   decision: sell
+    reason: Predicted weighted average is lower than the latest weighted average
